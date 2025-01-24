@@ -1,6 +1,8 @@
 package com.example.bookshelfapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -19,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
+import db.SQLiteBooksHelper;
 import models.Book;
 import models.Review;
 import org.jsoup.Jsoup;
@@ -38,6 +41,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
+
+    SQLiteDatabase db;
+    SQLiteBooksHelper DBHelper;
 
     private RecyclerView rvBooks;
     private List<Book> bookData = new ArrayList<>();
@@ -62,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        db = openOrCreateDatabase("Bookshelf", Context.MODE_PRIVATE, null);
+        DBHelper = new SQLiteBooksHelper(this);
+
         rvBooks = findViewById(R.id.rvBooks);
         EditText etSearch = findViewById(R.id.etSearch);
 
