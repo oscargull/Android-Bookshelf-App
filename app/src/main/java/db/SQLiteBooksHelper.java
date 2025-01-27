@@ -1,17 +1,80 @@
 package db;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.Toast;
+import com.example.bookshelfapp.LoginRegisterActivity;
+
+import javax.crypto.SecretKey;
+import java.util.Base64;
 
 public class SQLiteBooksHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "Bookshelf";
 
+    private String loggedUsername;
+    private int user_id;
 
     public SQLiteBooksHelper(Context context){
         super(context, DATABASE_NAME,null,DATABASE_VERSION);
     }
+
+    public void setLoggedUser(String loggedUser) {
+        this.loggedUsername = loggedUser;
+        this.user_id=getLoggedUserId();
+    }
+
+    public void registerUser(String username, String email, String[] hash){
+        ContentValues values = new ContentValues();
+        values.put(BookshelfContract.Users.USERNAME, username);
+        values.put(BookshelfContract.Users.EMAIL,email);
+        values.put(BookshelfContract.Users.SALT,hash[0]);
+        values.put(BookshelfContract.Users.HASHED_PASSWORD,hash[1]);
+        SQLiteDatabase db = getWritableDatabase();
+        db.insert(BookshelfContract.Users.TABLE_NAME,null,values);
+    }
+
+    public boolean logIn(Context con, String username, String password) throws Exception {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT *"
+                +" FROM "+BookshelfContract.Users.TABLE_NAME
+                +" WHERE "+BookshelfContract.Users.USERNAME+" = ?",new String[]{username});
+        if (c!=null && c.moveToFirst()){
+            String strSalt = c.getString(3);
+            String strHash = c.getString(4);
+            char[] pass = password.toCharArray();
+            byte[] salt = Base64.getDecoder().decode(strSalt);
+
+           LoginRegisterActivity temp =new LoginRegisterActivity();
+            SecretKey key = temp.pbkdf2(pass,salt);
+            String resultHash = Base64.getEncoder().encodeToString(key.getEncoded());
+            if(strHash.equals(resultHash)){
+                return true;
+            }else{
+                Toast.makeText(con, "Contraseña incorrecta",Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        }else{
+            Toast.makeText(con, "Usuario no encontrado",Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+
+    public int getLoggedUserId(){
+        SQLiteDatabase db= getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT "+BookshelfContract.Users.USER_ID
+                +" FROM "+BookshelfContract.Users.TABLE_NAME
+                +" WHERE "+ BookshelfContract.Users.USERNAME +" = ?",new String[]{loggedUsername});
+        int user_id=0;
+        if(c!=null && c.moveToFirst()) {
+            user_id = c.getInt(0);
+        }
+        return user_id;
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE "+BookshelfContract.Users.TABLE_NAME+" ("
