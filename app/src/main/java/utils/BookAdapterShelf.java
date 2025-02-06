@@ -18,13 +18,11 @@ import java.util.List;
 public class BookAdapterShelf extends ArrayAdapter<Book> {
     private Context context;
     private List<Book> libros;
-   // private boolean[] itemsChecked;
 
     public BookAdapterShelf(@NonNull Context context, List<Book> libros) {
         super(context, 0, libros);
         this.context = context;
         this.libros = libros;
-       // itemsChecked = new boolean[libros.size()];
     }
 
 
@@ -55,23 +53,8 @@ public class BookAdapterShelf extends ArrayAdapter<Book> {
         pbProgreso.setMax(100);
         pbProgreso.setProgress((libro.getNumPagLeidas()*100)/libro.getNumPag());
 
-        /*CheckBox cbCheckLibro = convertView.findViewById(R.id.cbCheckLibro);
-        cbCheckLibro.setTag(Integer.valueOf(position));
-        cbCheckLibro.setChecked(itemsChecked[position]);
-        cbCheckLibro.setOnCheckedChangeListener(mListener);*/
+
         return convertView;
     }
 
-    /*CompoundButton.OnCheckedChangeListener mListener = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            int position = (Integer) buttonView.getTag();
-            itemsChecked[position] = isChecked;
-            Log.d("seleccionados", Arrays.toString(itemsChecked));
-        }
-    };
-
-    public boolean[] getCheckedItems() {
-        return itemsChecked;
-    }*/
 }

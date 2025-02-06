@@ -20,6 +20,12 @@ public class BookshelfContract {
         public static final String TITLE = "title";
         public static final String AUTHOR = "author";
         public static final String GENRES = "genres";
+        public static final String SINOPSIS = "sinopsis";
+        public static final String ANIO = "anio";
+        public static final String RATING = "rating";
+        public static final String PORTADA = "portada";
+        public static final String NUM_PAG = "num_pag";
+
     }
 
     public static class Reviews implements BaseColumns{
@@ -39,7 +45,7 @@ public class BookshelfContract {
         public static final String USER_ID = "user_id";
         public static final String BOOK_ID = "book_id";
         public static final String STATUS = "status";
-        public static final String ADDED_DATE = "added_date";
-        public static final String UPDATED_DATE = "updated_date";
+        public static final String PROGRESO = "progreso";
+        public static final String FECHA_LEIDO = "fecha_leido";
     }
 }

@@ -2,17 +2,27 @@ package com.example.bookshelfapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,19 +34,24 @@ import androidx.recyclerview.widget.SnapHelper;
 import db.SQLiteBooksHelper;
 import models.Book;
 import models.Review;
+import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import pl.droidsonroids.gif.GifImageView;
+import utils.BatteryReceiver;
 import utils.BookAdapterMain;
 import utils.BookManager;
+import utils.UserManager;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
 
     List<Bitmap> bookImages = new ArrayList<>();
 
+    BatteryReceiver batteryReceiver;
+
+    boolean isBateriaBaja;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +86,25 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        //setTheme(R.style.Base_Theme_BookshelfApp_ActionBar);
+
         db = openOrCreateDatabase("Bookshelf", Context.MODE_PRIVATE, null);
         DBHelper = new SQLiteBooksHelper(this);
+
+        batteryReceiver = new BatteryReceiver();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryReceiver, filter);
+
+        isBateriaBaja = false;
+
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("logged_user", getIntent().getStringExtra("user"));
+        editor.apply();
+
+
+
+        //deleteDatabase("Bookshelf");
 
         rvBooks = findViewById(R.id.rvBooks);
         EditText etSearch = findViewById(R.id.etSearch);
@@ -109,6 +144,36 @@ public class MainActivity extends AppCompatActivity {
         rvBooks.setAdapter(bookAdapterMain);
         SnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(rvBooks);
+
+        Timer timer =new Timer();
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+
+                int batteryNivel = batteryReceiver.getNivelBateria();
+
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (batteryNivel <= 15 && batteryNivel>0) {
+                            if(!isBateriaBaja){
+                                if(checkSelfPermission("android.permission.SEND_SMS")!= PackageManager.PERMISSION_GRANTED) {
+                                    requestPermissions(new String[]{"android.permission.SEND_SMS"}, 1);
+                                }
+                                isBateriaBaja=true;
+                            }
+                        }else{
+                            isBateriaBaja=false;
+                        }
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, 0, 500);
+
     }
 
 
@@ -261,6 +326,58 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return null;
+    }
+
+
+
+public void EnviaSMS(String telefono,String mensaje){
+    try {
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage(telefono, null, mensaje, null,
+                null);
+        Toast.makeText(getApplicationContext(), "SMS enviado.",Toast.LENGTH_LONG).show();
+    } catch (Exception e) {
+        Toast.makeText(getApplicationContext(),"SMS no enviado, por favor, inténtalo otra vez.",Toast.LENGTH_LONG).show();
+        e.printStackTrace();
+    }
+}
+
+@Override
+public void onRequestPermissionsResult(int requestCode, @NonNull @NotNull String[] permissions, @NonNull @NotNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+    if (requestCode == 1) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            EnviaSMS("333","caca");
+        } else {
+            Toast.makeText(this, "El permiso para mandar SMS fue denegado.", Toast.LENGTH_SHORT).show();
+        }
+    }
+}
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_superior_main, menu);
+        return true;
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.opcPreferencias) {
+            Intent nextActiv = new Intent(MainActivity.this, PreferenciasActivity.class);
+            startActivity(nextActiv);
+            return true;
+        } else if (item.getItemId() == R.id.opcCerrarSesion) {
+            finish();
+            Intent nextActiv = new Intent(MainActivity.this, LoginRegisterActivity.class);
+            startActivity(nextActiv);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

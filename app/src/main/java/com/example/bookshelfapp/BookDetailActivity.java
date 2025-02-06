@@ -1,17 +1,23 @@
 package com.example.bookshelfapp;
 
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentManager;
+import db.SQLiteBooksHelper;
+import fragments.ReviewDialogFragment;
 import models.Book;
 import models.Review;
 import utils.BookManager;
@@ -21,11 +27,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class BookDetailActivity extends AppCompatActivity {
+public class BookDetailActivity extends AppCompatActivity  implements ReviewDialogFragment.MiListener {
 
     private String[] opcionesDeEstado = new String[]{"Añadir","Leyendo","Leído","Leer más tarde","Abandonado"};
     private Date fechaLeido; String strFecha; TextView tvFecha;
     List<Review> reviews;
+    Button btnReview;
+
+    Book libro;
+    SQLiteDatabase db;
+    SQLiteBooksHelper DBHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +48,11 @@ public class BookDetailActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        db = openOrCreateDatabase("Bookshelf", Context.MODE_PRIVATE, null);
+        DBHelper = new SQLiteBooksHelper(this);
+
         ImageView ivPortada  = findViewById(R.id.ivPortada2);
+        btnReview = findViewById(R.id.btnReview);
 
         TextView tvSinopsis = findViewById(R.id.tvSinopsis);
         TextView tvTitulo = findViewById(R.id.tvNombre2);
@@ -51,13 +66,16 @@ public class BookDetailActivity extends AppCompatActivity {
         TextView tvRating = findViewById(R.id.tvRating2);
         tvFecha = findViewById(R.id.tvFecha);
         Intent intent = getIntent();
-        Book libro = (Book) intent.getParcelableExtra("Libro");
+        libro = (Book) intent.getParcelableExtra("Libro");
 
-        reviews = libro.getReviews();
+       /* reviews = libro.getReviews();
         Log.d("Reviews", "Reviews size: " + reviews.size());
         ListView lvReviews = findViewById(R.id.lvReviews);
         ReviewAdapter reviewAdapter = new ReviewAdapter(this, reviews);
         lvReviews.setAdapter(reviewAdapter);
+        setListViewHeightBasedOnChildren(lvReviews);*/
+        poblarListaReviews();
+
 
         Spinner spEstado = findViewById(R.id.spEstado);
 
@@ -138,6 +156,16 @@ public class BookDetailActivity extends AppCompatActivity {
                         npNumPagLeidas.setEnabled(false);
                         break;
                 }
+                Log.d("lib titulo",libro.getTitulo());
+                Log.d("libro",String.valueOf(DBHelper.isLibroNuevo(libro.getTitulo())));
+                if(DBHelper.isLibroNuevo(libro.getTitulo())){
+                    Log.d("libro","libro gto save");
+                    DBHelper.saveLibro(libro, libro.getEstado());
+                    Log.d("libro","libro guardado,");
+                }else{
+                    DBHelper.updateLibro(libro, libro.getEstado());
+                }
+
                 BookManager.getInstance().addLibro(libro);
                 Toast.makeText(getApplicationContext(), "Se ha actualizado el libro en la estantería", Toast.LENGTH_SHORT).show();
             }
@@ -152,6 +180,7 @@ public class BookDetailActivity extends AppCompatActivity {
             @Override
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 libro.setNumPagLeidas(npNumPagLeidas.getValue());
+                DBHelper.setProgresoLibro(libro.getTitulo(),npNumPagLeidas.getValue());
             }
         });
         tvFecha.setOnClickListener(new View.OnClickListener() {
@@ -159,9 +188,57 @@ public class BookDetailActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mostrarCalendario();
                 libro.setFechaLeido(fechaLeido);
+                DBHelper.setFechaLeidoLibro(libro.getTitulo(), fechaLeido);
+            }
+        });
+        btnReview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fm = getSupportFragmentManager(); // Use this for AndroidX
+                ReviewDialogFragment dialogFragment = new ReviewDialogFragment();
+                dialogFragment.show(fm, "review");
             }
         });
     }
+
+    @Override
+    public void onDialogFragmentEvent(String reviewText, int rating) {
+        Log.d("BookDetailActivity", "Review: " + reviewText + ", Rating: " + rating);
+        DBHelper.addReview(reviewText, libro.getTitulo(), rating);
+        btnReview.setVisibility(View.INVISIBLE);
+        libro.addReview(rating, reviewText);
+
+        poblarListaReviews();
+
+    }
+
+    public void poblarListaReviews(){
+        reviews = libro.getReviews();
+        Log.d("Reviews", "Reviews size: " + reviews.size());
+        ListView lvReviews = findViewById(R.id.lvReviews);
+        ReviewAdapter reviewAdapter = new ReviewAdapter(this, reviews);
+        lvReviews.setAdapter(reviewAdapter);
+        setListViewHeightBasedOnChildren(lvReviews);
+    }
+
+        public void setListViewHeightBasedOnChildren (ListView listView){
+            ListAdapter listAdapter = listView.getAdapter();
+            if (listAdapter == null) return;
+
+            int totalHeight = 0;
+            for (int i = 0; i < listAdapter.getCount(); i++) {
+                View listItem = listAdapter.getView(i, null, listView);
+                listItem.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                totalHeight += listItem.getMeasuredHeight();
+            }
+
+            ViewGroup.LayoutParams params = listView.getLayoutParams();
+            params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+            listView.setLayoutParams(params);
+            listView.requestLayout();
+        }
+
+
 
     private void mostrarCalendario(){
         Calendar calendar = Calendar.getInstance();

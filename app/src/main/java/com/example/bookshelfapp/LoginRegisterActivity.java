@@ -1,7 +1,11 @@
 package com.example.bookshelfapp;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
@@ -9,7 +13,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.TaskStackBuilder;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -26,11 +36,17 @@ import java.util.Base64;
 
 public class LoginRegisterActivity extends AppCompatActivity  implements View.OnClickListener, LoginRegisterFragment.OnFragmentEventListener {
 
+    private static final String ID_CANAL ="canal_id";
+    private static final int NOTIF_ID = 1;
+
     SQLiteDatabase db;
     SQLiteBooksHelper DBhelper;
 
     Button btnLogin;
     Button btnSignUp;
+
+    NotificationManager notificationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +58,14 @@ public class LoginRegisterActivity extends AppCompatActivity  implements View.On
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        permisos();
+
+        NotificationChannel notificationChannel = new NotificationChannel(ID_CANAL, "canal1",NotificationManager.IMPORTANCE_DEFAULT);
+        notificationChannel.setDescription("canal de notificaciones");
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.createNotificationChannel(notificationChannel);
+
+        //setTheme(R.style.Base_Theme_BookshelfApp_NoActionBar);
         db = openOrCreateDatabase("Bookshelf", Context.MODE_PRIVATE,null);
         DBhelper= new SQLiteBooksHelper(this);
 
@@ -78,7 +102,8 @@ public class LoginRegisterActivity extends AppCompatActivity  implements View.On
             String email = args.getString("email");
             String[] hash= hashing(password);
             DBhelper.registerUser(username,email,hash);
-            Toast.makeText(this,"Usuario registrado",Toast.LENGTH_SHORT).show();
+            notifRegistro(username);
+            //Toast.makeText(this,"Usuario registrado",Toast.LENGTH_SHORT).show();
         }else{
             if(DBhelper.logIn(this,username,password)){
                 Intent nextAct = new Intent(LoginRegisterActivity.this, MainActivity.class);
@@ -112,4 +137,20 @@ public class LoginRegisterActivity extends AppCompatActivity  implements View.On
         PBEKeySpec spec = new PBEKeySpec(password, salt, 4096, 256);
         return factory.generateSecret(spec);
     }
+
+    private void permisos() {
+        if(checkSelfPermission("android.permission.RECEIVE_SMS")!= PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{"android.permission.RECEIVE_SMS"},1);
+        }
+    }
+
+    public void notifRegistro(String user){
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,ID_CANAL)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("Usuario "+user+" registrado")
+                .setOngoing(true);
+
+        notificationManager.notify(NOTIF_ID, builder.build());
+    }
+
 }

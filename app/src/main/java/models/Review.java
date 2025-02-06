@@ -13,6 +13,10 @@ public class Review implements Parcelable {
         this.text = text;
     }
 
+    public Review(){
+
+    }
+
     protected Review(Parcel in) {
         rating = in.readInt();
         text = in.readString();
