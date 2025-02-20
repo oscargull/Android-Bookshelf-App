@@ -2,17 +2,13 @@ package com.example.bookshelfapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
-import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,9 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -34,24 +28,19 @@ import androidx.recyclerview.widget.SnapHelper;
 import db.SQLiteBooksHelper;
 import models.Book;
 import models.Review;
-import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import pl.droidsonroids.gif.GifImageView;
-import utils.BatteryReceiver;
 import utils.BookAdapterMain;
 import utils.BookManager;
-import utils.UserManager;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
     List<Bitmap> bookImages = new ArrayList<>();
 
-    BatteryReceiver batteryReceiver;
 
     boolean isBateriaBaja;
 
@@ -91,9 +79,7 @@ public class MainActivity extends AppCompatActivity {
         db = openOrCreateDatabase("Bookshelf", Context.MODE_PRIVATE, null);
         DBHelper = new SQLiteBooksHelper(this);
 
-        batteryReceiver = new BatteryReceiver();
-        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(batteryReceiver, filter);
+
 
         isBateriaBaja = false;
 
@@ -145,34 +131,7 @@ public class MainActivity extends AppCompatActivity {
         SnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(rvBooks);
 
-        Timer timer =new Timer();
 
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-
-                int batteryNivel = batteryReceiver.getNivelBateria();
-
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        if (batteryNivel <= 15 && batteryNivel>0) {
-                            if(!isBateriaBaja){
-                                if(checkSelfPermission("android.permission.SEND_SMS")!= PackageManager.PERMISSION_GRANTED) {
-                                    requestPermissions(new String[]{"android.permission.SEND_SMS"}, 1);
-                                }
-                                isBateriaBaja=true;
-                            }
-                        }else{
-                            isBateriaBaja=false;
-                        }
-                    }
-                });
-            }
-        };
-        timer.schedule(timerTask, 0, 500);
 
     }
 
@@ -327,33 +286,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
     }
-
-
-
-public void EnviaSMS(String telefono,String mensaje){
-    try {
-        SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(telefono, null, mensaje, null,
-                null);
-        Toast.makeText(getApplicationContext(), "SMS enviado.",Toast.LENGTH_LONG).show();
-    } catch (Exception e) {
-        Toast.makeText(getApplicationContext(),"SMS no enviado, por favor, inténtalo otra vez.",Toast.LENGTH_LONG).show();
-        e.printStackTrace();
-    }
-}
-
-@Override
-public void onRequestPermissionsResult(int requestCode, @NonNull @NotNull String[] permissions, @NonNull @NotNull int[] grantResults) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-    if (requestCode == 1) {
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            EnviaSMS("333","caca");
-        } else {
-            Toast.makeText(this, "El permiso para mandar SMS fue denegado.", Toast.LENGTH_SHORT).show();
-        }
-    }
-}
 
 
     @Override

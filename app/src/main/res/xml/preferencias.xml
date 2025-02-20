@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Estilo" >
+
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:key="switch_preference_modo_oscuro"
+                android:title="Modo oscuro" />
+
+
+    </PreferenceCategory>
+
+
+
+   <PreferenceCategory  android:title="Aplicación">
+        <MultiSelectListPreference
+                android:title="Cambiar idioma"
+                android:key="list_preference_idioma"
+                android:entries="@array/idioma"
+                android:entryValues="@array/idioma_values"
+                android:defaultValue="@array/idioma_default"
+                android:summary="Español" />
+
+
+    </PreferenceCategory>
+</PreferenceScreen>
