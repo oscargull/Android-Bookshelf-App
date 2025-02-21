@@ -21,6 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.datastore.preferences.core.Preferences;
+import androidx.datastore.preferences.rxjava2.RxPreferenceDataStoreBuilder;
+import androidx.datastore.rxjava2.RxDataStore;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,6 +38,7 @@ import org.jsoup.select.Elements;
 import pl.droidsonroids.gif.GifImageView;
 import utils.BookAdapterMain;
 import utils.BookManager;
+import utils.DataStoreManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,8 +66,6 @@ public class MainActivity extends AppCompatActivity {
     List<Bitmap> bookImages = new ArrayList<>();
 
 
-    boolean isBateriaBaja;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,14 +82,9 @@ public class MainActivity extends AppCompatActivity {
         DBHelper = new SQLiteBooksHelper(this);
 
 
+        DataStoreManager dataStoreManager = DataStoreManager.getInstance(this);
 
-        isBateriaBaja = false;
-
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("logged_user", getIntent().getStringExtra("user"));
-        editor.apply();
-
+        dataStoreManager.putString("logged_user", getIntent().getStringExtra("user"));
 
 
         //deleteDatabase("Bookshelf");

@@ -2,7 +2,6 @@ package db;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -13,7 +12,7 @@ import android.widget.Toast;
 import com.example.bookshelfapp.LoginRegisterActivity;
 import models.Book;
 import models.Review;
-import utils.UserManager;
+import utils.DataStoreManager;
 
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
@@ -23,25 +22,20 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
-import static android.content.Context.MODE_PRIVATE;
-
 public class SQLiteBooksHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "Bookshelf";
 
+    private DataStoreManager dataStoreManager;
     private String loggedUsername;
     private int user_id;
-    private Context con;
-
-    //UserManager um;
 
     public SQLiteBooksHelper(Context context){
         super(context, DATABASE_NAME,null,DATABASE_VERSION);
-        this.con=context.getApplicationContext();
 
-        SharedPreferences prefs = con.getSharedPreferences("user_prefs", MODE_PRIVATE);
-      loggedUsername = prefs.getString("logged_user", null);
-        //um = new UserManager(context);
+        dataStoreManager=DataStoreManager.getInstance(context);
+        loggedUsername = dataStoreManager.getString("logged_user").blockingGet();
+
     }
 
 
