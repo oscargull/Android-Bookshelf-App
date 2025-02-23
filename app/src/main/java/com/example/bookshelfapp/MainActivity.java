@@ -2,7 +2,6 @@ package com.example.bookshelfapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,9 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.datastore.preferences.core.Preferences;
-import androidx.datastore.preferences.rxjava2.RxPreferenceDataStoreBuilder;
-import androidx.datastore.rxjava2.RxDataStore;
+import androidx.datastore.preferences.core.PreferencesKeys;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Book> bookData = new ArrayList<>();
     private Book book = new Book();
 
+    private String username;
+
 
     BookAdapterMain bookAdapterMain = new BookAdapterMain(bookData,this);
     String search;
@@ -65,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     List<Bitmap> bookImages = new ArrayList<>();
 
+    private DataStoreManager dataStoreManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +82,12 @@ public class MainActivity extends AppCompatActivity {
         DBHelper = new SQLiteBooksHelper(this);
 
 
-        DataStoreManager dataStoreManager = DataStoreManager.getInstance(this);
+        dataStoreManager = DataStoreManager.getInstance(this);
 
-        dataStoreManager.putString("logged_user", getIntent().getStringExtra("user"));
+        if(getIntent()!=null) {
+            username = getIntent().getStringExtra("user");
+            dataStoreManager.putString("logged_user", getIntent().getStringExtra("user"));
+        }
 
 
         //deleteDatabase("Bookshelf");
@@ -297,12 +300,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.opcPreferencias) {
-            Intent nextActiv = new Intent(MainActivity.this, PreferenciasActivity.class);
+            Intent nextActiv = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(nextActiv);
             return true;
         } else if (item.getItemId() == R.id.opcCerrarSesion) {
             finish();
             Intent nextActiv = new Intent(MainActivity.this, LoginRegisterActivity.class);
+            dataStoreManager.removeKey(PreferencesKeys.stringKey("logged_user"));
+            dataStoreManager.removeKey(PreferencesKeys.booleanKey("keep_logged_in"));
             startActivity(nextActiv);
             return true;
         }

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="Estilo" >
+    <PreferenceCategory android:title="Style" >
 
 
         <SwitchPreference
                 android:defaultValue="false"
-                android:key="switch_preference_modo_oscuro"
-                android:title="Modo oscuro" />
+                android:key="dark_mode"
+                android:title="Dark theme" />
 
 
     </PreferenceCategory>
@@ -22,6 +22,10 @@
                 android:entryValues="@array/idioma_values"
                 android:defaultValue="@array/idioma_default"
                 android:summary="Español" />
+       <SwitchPreference
+       android:title="Keep me logged in"
+       android:key="keep_logged_in"
+       android:defaultValue="false"/>
 
 
     </PreferenceCategory>

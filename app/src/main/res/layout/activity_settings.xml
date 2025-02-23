@@ -6,13 +6,13 @@
        android:id="@+id/main"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       tools:context=".PreferenciasActivity">
+       tools:context=".SettingsActivity">
 
 
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragmentContainerView"
-            android:name="fragments.Preferencias"
+            android:name="fragments.SettingsFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
