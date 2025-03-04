@@ -1,6 +1,6 @@
-package utils;
+package com.example.bookshelfapp.utils;
 
-import models.Book;
+import com.example.bookshelfapp.models.Book;
 
 import java.util.ArrayList;
 import java.util.List;

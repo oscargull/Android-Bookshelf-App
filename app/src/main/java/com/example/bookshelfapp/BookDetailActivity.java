@@ -16,12 +16,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.FragmentManager;
-import db.SQLiteBooksHelper;
-import fragments.ReviewDialogFragment;
-import models.Book;
-import models.Review;
-import utils.BookManager;
-import utils.ReviewAdapter;
+import com.example.bookshelfapp.db.SQLiteBooksHelper;
+import com.example.bookshelfapp.fragments.ReviewDialogFragment;
+import com.example.bookshelfapp.models.Book;
+import com.example.bookshelfapp.models.Review;
+import com.example.bookshelfapp.utils.BookManager;
+import com.example.bookshelfapp.utils.ReviewAdapter;
 
 import java.util.Calendar;
 import java.util.Date;

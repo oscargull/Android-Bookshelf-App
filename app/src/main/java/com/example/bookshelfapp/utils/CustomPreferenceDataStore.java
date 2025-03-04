@@ -1,4 +1,4 @@
-package utils;
+package com.example.bookshelfapp.utils;
 
 import androidx.datastore.preferences.core.Preferences;
 import androidx.datastore.preferences.core.PreferencesKeys;

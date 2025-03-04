@@ -1,4 +1,4 @@
-package db;
+package com.example.bookshelfapp.db;
 
 import android.provider.BaseColumns;
 

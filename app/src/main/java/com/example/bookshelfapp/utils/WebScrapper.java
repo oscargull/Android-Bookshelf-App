@@ -1,41 +1,15 @@
-package com.example.bookshelfapp;
+package com.example.bookshelfapp.utils;
 
-import android.content.Context;
-import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.Bundle;
-
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.datastore.preferences.core.PreferencesKeys;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SnapHelper;
-import com.example.bookshelfapp.db.SQLiteBooksHelper;
 import com.example.bookshelfapp.models.Book;
 import com.example.bookshelfapp.models.Review;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import pl.droidsonroids.gif.GifImageView;
-import com.example.bookshelfapp.utils.BookAdapterMain;
-import com.example.bookshelfapp.utils.BookManager;
-import com.example.bookshelfapp.utils.DataStoreManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,105 +19,36 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends AppCompatActivity {
+public class WebScrapper  {
 
-    SQLiteDatabase db;
-    SQLiteBooksHelper DBHelper;
+    private String query;
+    private List<Book> bookList;
 
-    private RecyclerView rvBooks;
-    private List<Book> bookData = new ArrayList<>();
-    private Book book = new Book();
+    public void searchLibros(String query, AsyncResponse callback){
+        this.query=query;
+        this.bookList=new ArrayList<>();
 
-    private String username;
-
-
-    BookAdapterMain bookAdapterMain = new BookAdapterMain(bookData,this);
-    String search;
-    Button btnSearch;
-    GifImageView gifLoading;
-
-    List<Bitmap> bookImages = new ArrayList<>();
-
-    private DataStoreManager dataStoreManager;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        //setTheme(R.style.Base_Theme_BookshelfApp_ActionBar);
-
-        db = openOrCreateDatabase("Bookshelf", Context.MODE_PRIVATE, null);
-        DBHelper = new SQLiteBooksHelper(this);
-
-
-        dataStoreManager = DataStoreManager.getInstance(this);
-
-        if(getIntent()!=null) {
-            username = getIntent().getStringExtra("user");
-            dataStoreManager.putString("logged_user", getIntent().getStringExtra("user"));
-        }
-
-
-        //deleteDatabase("Bookshelf");
-
-        rvBooks = findViewById(R.id.rvBooks);
-        EditText etSearch = findViewById(R.id.etSearch);
-
-        gifLoading =  findViewById(R.id.gifLoading);
-        gifLoading.setVisibility(View.INVISIBLE);
-
-
-        btnSearch = findViewById(R.id.btnSearch);
-        Button btnBookshelf = findViewById(R.id.btnBookshelf);
-
-        btnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                rvBooks.setVisibility(View.INVISIBLE);
-                search = etSearch.getText().toString();
-                new WebScrapingTask().execute();
-                if(!bookImages.isEmpty()){
-                    bookImages.clear();
-                }
-                gifLoading.setVisibility(View.VISIBLE);
-
-                btnSearch.setEnabled(false);
-            }
-        });
-        btnBookshelf.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent nextAct = new Intent(MainActivity.this, MyBookshelfActivity.class);
-                startActivity(nextAct);
-            }
-        });
-
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL,false);
-        rvBooks.setLayoutManager(linearLayoutManager);
-        rvBooks.setAdapter(bookAdapterMain);
-        SnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(rvBooks);
-
-
-
+        new WebScrapingTask(callback).execute();
     }
 
+    public interface AsyncResponse{
+        void processFinish(Object output);
+    }
 
     private class WebScrapingTask extends AsyncTask<Void, Void, List<Book>> {
+        private AsyncResponse listener;
+
+        public WebScrapingTask(AsyncResponse listener){
+            this.listener=listener;
+        }
 
         @Override
         protected List<Book> doInBackground(Void... voids) {
             List<Book> bookDataSearch = new ArrayList<>();
+            List<Bitmap> bookImages = new ArrayList<>();
 
             try {
-                Document document = Jsoup.connect("https://www.goodreads.com/search?utf8=%E2%9C%93&query=" + search).get();
+                Document document = Jsoup.connect("https://www.goodreads.com/search?utf8=%E2%9C%93&query=" + query).get();
                 Elements bookElements = document.select("table tbody tr");
 
                 for (Element libroElement : bookElements) {
@@ -264,18 +169,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Book> datosLibroBusqueda) {
             super.onPostExecute(datosLibroBusqueda);
-            btnSearch.setEnabled(true);
-            gifLoading.setVisibility(View.INVISIBLE);
-            rvBooks.setVisibility(View.VISIBLE);
-
-            bookData.clear();
-
-            bookData.addAll(datosLibroBusqueda);
-            bookAdapterMain.notifyDataSetChanged();
+            bookList.clear();
+            bookList.addAll(datosLibroBusqueda);
+            listener.processFinish(bookList);
         }
     }
-
-
 
     private Bitmap downloadImage(String imageUrl) {
         try {
@@ -286,66 +184,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
     }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_superior_main, menu);
-        return true;
-    }
-
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.opcPreferencias) {
-            Intent nextActiv = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(nextActiv);
-            return true;
-        } else if (item.getItemId() == R.id.opcCerrarSesion) {
-            finish();
-            Intent nextActiv = new Intent(MainActivity.this, LoginRegisterActivity.class);
-            dataStoreManager.removeKey(PreferencesKeys.stringKey("logged_user"));
-            dataStoreManager.removeKey(PreferencesKeys.booleanKey("keep_logged_in"));
-            startActivity(nextActiv);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        List<Book> myBooks = BookManager.getInstance().getLibros();
-        for (int i = 0; i < bookData.size(); i++) {
-            Book libroBusqueda = bookData.get(i);
-            for (Book book : myBooks) {
-                if (libroBusqueda.getTitulo().equals(book.getTitulo())) {
-                    book.setRecursoImagenFull(bookImages.get(i));
-                    bookData.set(i, book);
-                    break;
-                }
-            }
-        }
-        bookAdapterMain.notifyDataSetChanged();
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

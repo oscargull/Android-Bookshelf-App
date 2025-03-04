@@ -1,4 +1,4 @@
-package fragments;
+package com.example.bookshelfapp.fragments;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -7,8 +7,8 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
 import com.example.bookshelfapp.R;
-import utils.CustomPreferenceDataStore;
-import utils.DataStoreManager;
+import com.example.bookshelfapp.utils.CustomPreferenceDataStore;
+import com.example.bookshelfapp.utils.DataStoreManager;
 
 
 public class SettingsFragment extends PreferenceFragmentCompat {

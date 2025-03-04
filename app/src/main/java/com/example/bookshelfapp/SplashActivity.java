@@ -7,12 +7,8 @@ import android.os.Handler;
 import android.util.Log;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.datastore.rxjava2.RxDataStore;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import utils.DataStoreManager;
+import com.example.bookshelfapp.utils.DataStoreManager;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -32,7 +28,8 @@ public class SplashActivity extends AppCompatActivity {
                     if (!keepLoggedIn) {
                         nextActivity = new Intent(SplashActivity.this, LoginRegisterActivity.class);
                     } else {
-                        nextActivity = new Intent(SplashActivity.this, MainActivity.class);
+                        //nextActivity = new Intent(SplashActivity.this, MainActivity.class);
+                        nextActivity = new Intent(SplashActivity.this, MainActivityTemp.class);
                     }
                 }, throwable -> {
                     Log.e("SplashActivity", "Error getting keep_logged_in preference", throwable);

@@ -1,4 +1,4 @@
-package utils;
+package com.example.bookshelfapp.utils;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -11,7 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import com.example.bookshelfapp.R;
-import models.Book;
+import com.example.bookshelfapp.models.Book;
 
 import java.util.List;
 

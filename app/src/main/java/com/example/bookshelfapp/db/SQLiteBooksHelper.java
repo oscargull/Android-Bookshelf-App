@@ -1,4 +1,4 @@
-package db;
+package com.example.bookshelfapp.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -10,9 +10,9 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.Toast;
 import com.example.bookshelfapp.LoginRegisterActivity;
-import models.Book;
-import models.Review;
-import utils.DataStoreManager;
+import com.example.bookshelfapp.models.Book;
+import com.example.bookshelfapp.models.Review;
+import com.example.bookshelfapp.utils.DataStoreManager;
 
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
