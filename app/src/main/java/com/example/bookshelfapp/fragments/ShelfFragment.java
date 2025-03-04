@@ -1,17 +1,21 @@
 package com.example.bookshelfapp.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.example.bookshelfapp.BookDetailActivity;
 import com.example.bookshelfapp.R;
 import com.example.bookshelfapp.models.Book;
 import com.example.bookshelfapp.utils.BookAdapterShelf;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +31,7 @@ public class ShelfFragment extends Fragment {
     private ListView lvLibrosAbandonados;
 
     private Map<Integer, List<Book>> booksMap;
+    private ListView[] lists;
 
     private OnFragmentEventListener listener;
 
@@ -43,6 +48,23 @@ public class ShelfFragment extends Fragment {
         lvLibrosAbandonados = view.findViewById(R.id.lvLibrosAbandonados);
 
         loadLists();
+
+        lists= new ListView[]{lvLibrosLeyendo, lvLibrosLeidos,lvLibrosParaLeer,lvLibrosAbandonados};
+
+        for (int i = 0; i < lists.length; i++){
+            final int pos = i+1;
+            lists[i].setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    List<Book> bookList = booksMap.getOrDefault(pos, null);
+                    if (bookList != null && position >= 0 && position < bookList.size()) {
+                        Intent nextAct = new Intent(requireActivity(), BookDetailActivity.class);
+                        nextAct.putExtra("Libro", bookList.get(position));
+                        startActivity(nextAct);
+                    }
+                }
+            });
+        }
 
         return view;
     }
@@ -70,7 +92,14 @@ public class ShelfFragment extends Fragment {
             listener = (OnFragmentEventListener) context;
         }
     }
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        arrayAdapterLibrosLeidos.notifyDataSetChanged();
+        arrayAdapterLibrosLeyendo.notifyDataSetChanged();
+        arrayAdapterLibrosParaLeer.notifyDataSetChanged();
+        arrayAdapterLibrosAbandonados.notifyDataSetChanged();
+    }
     @Override
     public void onDetach(){
         super.onDetach();
